@@ -5,9 +5,6 @@ import type { Court } from '@/app/types/Court'
 
 export default function BookingsPage() {
   async function handleBook(court: Court, slotIds: string[]) {
-    // Call your server action here
-    console.log('Booking:', court.id, slotIds)
-    // e.g. await bookCourtAction({ courtId: court.id, slots: slotIds })
   }
 
   return (

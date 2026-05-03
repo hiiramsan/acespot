@@ -28,12 +28,12 @@ export default function AppLayout({
         }}
       />
       {/* Floating Navbar */}
-      <nav className="absolute top-3 left-0 right-0 z-50 px-4">
+      <nav className="absolute top-3 left-0 right-0 z-50 px-4 pointer-events-none">
         <AppNavbar />
       </nav>
 
       {/* Full-screen Content */}
-      <main className="w-full h-full">
+      <main className="relative w-full h-full overflow-auto">
         {children}
       </main>
     </div>
