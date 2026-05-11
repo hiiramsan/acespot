@@ -122,7 +122,7 @@ export default function VerifyPage() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="flex-shrink-0 mt-0.5"
+              className="shrink-0 mt-0.5"
             >
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>

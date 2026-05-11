@@ -13,13 +13,13 @@ export async function proxy(request: NextRequest) {
 
   if (user && request.nextUrl.pathname === "/") {
     const url = request.nextUrl.clone()
-    url.pathname = "/bookings"
+    url.pathname = "/booking"
     return NextResponse.redirect(url)
   }
 
   if (user && request.nextUrl.pathname.startsWith("/auth")) {
     const url = request.nextUrl.clone()
-    url.pathname = "/bookings"
+    url.pathname = "/booking"
     return NextResponse.redirect(url)
   }
 

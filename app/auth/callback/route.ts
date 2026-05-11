@@ -5,7 +5,7 @@ import { createSession } from "@/app/utils/session"
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
-  const next = searchParams.get("next") ?? "/bookings"
+  const next = searchParams.get("next") ?? "/booking"
 
   if (code) {
     const supabase = await createClient()
@@ -28,7 +28,6 @@ export async function GET(request: Request) {
           .single()
 
         if (user) {
-          // Issue our own session
           await createSession({
             id: user.id,
             email: user.email,

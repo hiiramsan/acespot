@@ -36,8 +36,9 @@ export function BookingSidebar({ court, onClose }: Props) {
   return (
     <>
       <div
-        className={`absolute top-0 right-0 h-full w-100 bg-white border-l border-gray-200 shadow-xl flex flex-col z-60 transition-transform duration-300 ease-in-out pointer-events-auto ${court ? 'translate-x-0' : 'translate-x-full'
+        className={`absolute top-0 right-0 h-full w-100 bg-white border-l border-gray-200 shadow-xl flex flex-col z-[70] transition-transform duration-300 ease-in-out pointer-events-auto ${court ? 'translate-x-0' : 'translate-x-full'
           }`}
+        data-sidebar
         onMouseDown={e => e.stopPropagation()}
         onTouchStart={e => e.stopPropagation()}
       >

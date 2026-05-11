@@ -93,7 +93,6 @@ const AuthPage = () => {
         e.preventDefault();
         setError(null);
         
-        // Validate form before submission
         const validationErrors = mode === "register" ? validateRegisterForm() : validateLoginForm();
         
         if (Object.keys(validationErrors).length > 0) {

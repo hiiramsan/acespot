@@ -1,9 +1,9 @@
 'use client'
 import { useRef, useState } from 'react'
 import { Check, Trash2 } from 'lucide-react'
-import { getReservedHours } from '@/app/data/schedule'
+import { useReservedHours } from '@/app/hooks/useReservedHours'
 
-const OPEN_HOUR  = 7
+const OPEN_HOUR = 7
 const CLOSE_HOUR = 22
 
 export function formatHour(h: number) {
@@ -23,7 +23,7 @@ interface Props {
 }
 
 export function TimeSlots({ courtId, date, selected, onChange }: Props) {
-  const reservedHours = getReservedHours(courtId, date)
+  const { reservedHours, loading } = useReservedHours(courtId, date)
 
   const hours = Array.from(
     { length: CLOSE_HOUR - OPEN_HOUR },
@@ -56,12 +56,12 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
     const { start, end } = selected
 
     if (hour >= start && hour <= end) {
-      if (start === end) return null                          
+      if (start === end) return null
       if (hour === start) return { start: hour + 1, end }
       if (hour === end) return { start, end: hour - 1 }
       return null
     }
-    
+
     if (hour === start - 1) return buildRange(hour, end)
     if (hour === end + 1) return buildRange(start, hour)
 
@@ -114,7 +114,7 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
         onMouseUp={handleMouseUp}
       >
         {hours.map(hour => {
-          const isReserved  = reservedHours.has(hour)
+          const isReserved = reservedHours.has(hour)
           const highlighted = isInRange(hour)
 
           return (

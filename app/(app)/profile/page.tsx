@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { LogoutButton } from "@/app/components/LogoutButton"
 import { getUser } from "@/app/utils/user"
-import Image from "next/image"
 
 export default async function ProfilePage() {
   const user = await getUser()
@@ -13,118 +12,112 @@ export default async function ProfilePage() {
   const memberSince = formatMemberSince(user.created_at)
   const totalReservations = user.total_reservations ?? 0
   const hoursBooked = user.total_hours ?? 0
-  const initials = displayName
-    .trim()
-    .split(" ")
-    .map((part: string) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
+
+  const emailInitial = (email && email !== "—") ? email.charAt(0).toUpperCase() : "U"
+  const avatarColors = ["bg-blue-100 text-blue-900", "bg-purple-100 text-purple-900", "bg-green-100 text-green-900", "bg-pink-100 text-pink-900", "bg-amber-100 text-amber-900"]
+  const colorIndex = email.charCodeAt(0) % avatarColors.length
+  const avatarColor = avatarColors[colorIndex]
+
+  // Adjust font sizes based on displayName length
+  const nameLength = displayName.length
+  let nameSize = "text-5xl sm:text-6xl"
+  let emailSize = "text-xl"
+  let statsSize = "text-5xl sm:text-6xl"
+
+  if (nameLength > 25) {
+    nameSize = "text-2xl sm:text-3xl"
+    emailSize = "text-md"
+    statsSize = "text-3xl sm:text-4xl"
+  } else if (nameLength > 15) {
+    nameSize = "text-3xl sm:text-4xl"
+    emailSize = "text-xl"
+    statsSize = "text-4xl sm:text-5xl"
+  }
 
   return (
-    <div className="h-full w-full px-4 md:px-8 lg:px-12 pt-20 pb-6">
-      <section className="h-full max-w-5xl mx-auto flex flex-col gap-6">
-        <header className="flex flex-wrap items-end justify-between gap-4">
+    <div className="min-h-screen bg-white">
+      {/* Cover Background */}
+      <div className="relative h-42 overflow-hidden">
+        <img
+          src="/bannerprofile.png"
+          alt="Profile banner"
+          className="h-full w-full object-cover"
+        />
+
+        <div className="absolute inset-0 bg-black/30"></div>
+      </div>
+
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-20 relative z-10">
+        {/* Profile Picture */}
+        <div className="mb-10">
+          <div className="w-24 h-24 flex items-center justify-center">
+            {user.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt="Profile"
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <div className={`w-full h-full rounded-lg flex items-center justify-center text-4xl font-light ${avatarColor}`}>
+                {emailInitial}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-[#4a5e3a]">
-              Profile
-            </p>
-            <h1
-              className="text-3xl md:text-4xl font-semibold text-[#1a2e10]"
-              style={{ fontFamily: "var(--font-urbanist)" }}
-            >
-              Account overview
+            <h1 className={`${nameSize} font-light text-gray-900 mb-2`}>
+              {displayName}
             </h1>
+            <p className={`${emailSize} text-gray-500`}>{email}</p>
           </div>
-        </header>
+          <LogoutButton className="px-5 py-2 bg-black text-white text-xs font-medium hover:bg-gray-800 transition-colors rounded whitespace-nowrap" />
+        </div>
 
-        <div className="flex-1 grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] gap-6 min-h-0">
-          <div className="lg:col-span-2 rounded-3xl border border-lime-400/40 bg-[#0b0b0b] p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
-            <div className="flex flex-wrap items-center justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className="h-20 w-20 rounded-full border border-lime-300/50 bg-[#101010] overflow-hidden">
-                  {user.avatar_url ? (
-                    <img
-                      src={user.avatar_url}
-                      alt="Profile avatar"
-                      width={80}
-                      height={80}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center text-xl font-semibold text-lime-300">
-                      {initials || "R"}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.35em] text-lime-300/70">
-                    Full name
-                  </p>
-                  <h2
-                    className="text-2xl font-semibold text-white"
-                    style={{ fontFamily: "var(--font-urbanist)" }}
-                  >
-                    {displayName}
-                  </h2>
-                  <p className="mt-1 text-sm text-white/60">{email}</p>
-                </div>
+        {/* Main Info */}
+        <div className="space-y-10 pb-10">
+          {/* Member Info */}
+          <div>
+            <p className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
+              Member Information
+            </p>
+            <div className="space-y-3">
+              <div className="flex justify-between items-baseline border-b border-gray-200 pb-3">
+                <span className="text-gray-600">Member since</span>
+                <span className="text-gray-900">{memberSince}</span>
               </div>
-              <button
-                type="button"
-                className="rounded-2xl border border-lime-300/30 bg-[#121212] px-4 py-2 text-sm text-white/80 hover:border-lime-300/60"
-              >
-                Edit profile
-              </button>
+              <div className="flex justify-between items-baseline border-b border-gray-200 pb-3">
+                <span className="text-gray-600">Email address</span>
+                <span className="text-gray-900">{email}</span>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-lime-400/40 bg-[#0b0b0b] p-6 md:p-8">
-            <p className="text-xs uppercase tracking-[0.35em] text-lime-300/70">
-              Details
+          {/* Usage Stats */}
+          <div>
+            <p className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
+              Usage Statistics
             </p>
-            <div className="mt-5 grid gap-4">
-              <div className="rounded-2xl border border-lime-300/20 bg-[#121212] p-4">
-                <p className="text-xs uppercase tracking-[0.35em] text-lime-300/60">
-                  Member since
-                </p>
-                <p className="mt-2 text-sm text-white/80">{memberSince}</p>
-              </div>
-              <div className="rounded-2xl border border-lime-300/20 bg-[#121212] p-4">
-                <p className="text-xs uppercase tracking-[0.35em] text-lime-300/60">
-                  Email
-                </p>
-                <p className="mt-2 text-sm text-white/80">{email}</p>
-              </div>
-              <LogoutButton className="w-full" />
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-lime-400/40 bg-[#0b0b0b] p-6 md:p-8">
-            <p className="text-xs uppercase tracking-[0.35em] text-lime-300/70">
-              Usage
-            </p>
-            <div className="mt-5 grid gap-4">
-              <div className="rounded-2xl border border-lime-300/20 bg-[#121212] p-4">
-                <p className="text-xs uppercase tracking-[0.35em] text-lime-300/60">
-                  Total reservations
-                </p>
-                <p className="mt-2 text-2xl font-semibold text-white">
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <p className={`${statsSize} font-light text-gray-900`}>
                   {totalReservations}
                 </p>
+                <p className="text-sm text-gray-600 mt-2">Total Reservations</p>
               </div>
-              <div className="rounded-2xl border border-lime-300/20 bg-[#121212] p-4">
-                <p className="text-xs uppercase tracking-[0.35em] text-lime-300/60">
-                  Hours booked
-                </p>
-                <p className="mt-2 text-2xl font-semibold text-white">
+              <div>
+                <p className={`${statsSize} font-light text-gray-900`}>
                   {hoursBooked}
                 </p>
+                <p className="text-sm text-gray-600 mt-2">Hours Booked</p>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   )
 }

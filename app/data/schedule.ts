@@ -21,8 +21,15 @@ export const BOOKINGS: Booking[] = [
   { id: 'b13', courtId: 'clay-2', customerId: 'cust-113', date: '2026-04-28', startHour: 11, endHour: 13 },
 ]
 
+function formatLocalDateKey(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function getReservedHours(courtId: string, date: Date): Set<number> {
-  const dateStr = date.toISOString().split('T')[0]
+  const dateStr = formatLocalDateKey(date)
   const reserved = new Set<number>()
   BOOKINGS
     .filter(b => b.courtId === courtId && b.date === dateStr)

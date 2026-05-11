@@ -8,11 +8,11 @@ import { BookingSidebar } from './BookingSidebar'
 import { Court } from '@/app/types/Court'
 import { MapControls } from './MapControl'
 import { Facility } from '@/app/types/Facility'
+import { useCourts } from '@/app/hooks/useCourts'
 
 interface Props {
   height?: number | string
   onBook?: (court: Court, slotIds: string[]) => void
-  courts?: Court[]
 }
 
 const FACILITY_STYLE: Record<Facility['kind'], {
@@ -24,9 +24,10 @@ const FACILITY_STYLE: Record<Facility['kind'], {
   entrance: { fill: '#c8c8c4', stroke: '#888880', textFill: '#444' },
 }
 
-export function CourtMap({ height = '100vh', onBook, courts = COURTS }: Props) {
+export function CourtMap({ height = '100vh', onBook }: Props) {
   const { canvasRef, zoomIn, zoomOut, reset, wasLastInteractionPan, resetPanFlag } = useMapPanZoom()
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(null)
+  const { courts, loading } = useCourts()
 
   const handleCourtClick = useCallback((court: Court) => {
     console.log(`${court.label} selected`)
@@ -44,6 +45,39 @@ export function CourtMap({ height = '100vh', onBook, courts = COURTS }: Props) {
           cursor: 'grab',
         }}
       >
+        {loading && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+            }}
+            role="status"
+            aria-label="Loading courts"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="animate-spin"
+              style={{ color: '#6b7280' }}
+            >
+              <path d="M4.97498 12H7.89998" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+              <path d="M11.8 5V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+              <path d="M18.625 12H15.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+              <path d="M11.8 19V16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+              <path d="M6.97374 16.95L9.04203 14.8287" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+              <path d="M6.97374 7.05001L9.04203 9.17133" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+              <path d="M16.6262 7.05001L14.5579 9.17133" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+              <path d="M16.6262 16.95L14.5579 14.8287" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+            </svg>
+          </div>
+        )}
         <div
           ref={canvasRef}
           style={{ position: 'absolute', top: 0, left: 0, transformOrigin: '0 0', willChange: 'transform' }}

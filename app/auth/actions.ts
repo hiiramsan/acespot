@@ -30,7 +30,7 @@ export async function login(formData: FormData) {
     provider: "email",
   })
 
-  redirect("/bookings")
+  redirect("/booking")
 }
 
 export async function register(formData: FormData) {
@@ -124,7 +124,7 @@ export async function verifyEmail(formData: FormData) {
     provider: "email",
   })
 
-  redirect("/bookings")
+  redirect("/booking")
 }
 
 
