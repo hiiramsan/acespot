@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { LogoutButton } from "@/app/components/LogoutButton"
+import ProfileAvatar from "@/app/components/ProfileAvatar"
 import { getUser } from "@/app/utils/user"
 
 export default async function ProfilePage() {
@@ -18,7 +19,6 @@ export default async function ProfilePage() {
   const colorIndex = email.charCodeAt(0) % avatarColors.length
   const avatarColor = avatarColors[colorIndex]
 
-  // Adjust font sizes based on displayName length
   const nameLength = displayName.length
   let nameSize = "text-5xl sm:text-6xl"
   let emailSize = "text-xl"
@@ -52,17 +52,11 @@ export default async function ProfilePage() {
         {/* Profile Picture */}
         <div className="mb-10">
           <div className="w-24 h-24 flex items-center justify-center">
-            {user.avatar_url ? (
-              <img
-                src={user.avatar_url}
-                alt="Profile"
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <div className={`w-full h-full rounded-lg flex items-center justify-center text-4xl font-light ${avatarColor}`}>
-                {emailInitial}
-              </div>
-            )}
+            <ProfileAvatar
+              avatarUrl={user.avatar_url}
+              emailInitial={emailInitial}
+              avatarColor={avatarColor}
+            />
           </div>
         </div>
 

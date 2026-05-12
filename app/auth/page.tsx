@@ -1,12 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import AppleIcon from "./components/AppleIcon";
 import GoogleIcon from "./components/GoogleIcon";
 import { EyeIcon } from "./components/EyeIcon";
 import { login, register, signInWithOAuth } from "./actions";
 
 const AuthPage = () => {
+    const searchParams = useSearchParams()
+    const redirectTo = normalizeRedirectTarget(searchParams.get("redirectTo"))
 
     const [showPassword, setShowPassword] = useState(false);
     const [showRepeatPassword, setShowRepeatPassword] = useState(false);
@@ -104,6 +107,7 @@ const AuthPage = () => {
         const form = new FormData();
         form.append("email", formData.email);
         form.append("password", formData.password);
+        form.append("redirectTo", redirectTo);
         let result;
         if(mode == "login") {
             result = await login(form);
@@ -117,7 +121,7 @@ const AuthPage = () => {
 
     async function handleOAuth(provider: "google" | "apple") {
         setError(null);
-        await signInWithOAuth(provider);
+        await signInWithOAuth(provider, redirectTo);
     }
 
     return (
@@ -309,3 +313,11 @@ const AuthPage = () => {
 }
 
 export default AuthPage;
+
+function normalizeRedirectTarget(value: string | null) {
+    if (!value) return "/booking"
+    if (!value.startsWith("/")) return "/booking"
+    if (value.startsWith("//")) return "/booking"
+    if (value.includes("://")) return "/booking"
+    return value
+}

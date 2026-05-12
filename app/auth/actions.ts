@@ -8,6 +8,7 @@ import { sendOTP, verifyOTP } from "../utils/email/otp"
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
+  const redirectTo = getRedirectTarget(formData)
 
   const email = formData.get("email") as string
   const password = formData.get("password") as string
@@ -30,11 +31,12 @@ export async function login(formData: FormData) {
     provider: "email",
   })
 
-  redirect("/booking")
+  redirect(redirectTo)
 }
 
 export async function register(formData: FormData) {
   const supabase = await createClient()
+  const redirectTo = getRedirectTarget(formData)
 
   const email = formData.get("email") as string
   const password = formData.get("password") as string
@@ -78,7 +80,7 @@ export async function register(formData: FormData) {
 
   await sendOTP(email)
 
-  redirect("/auth/verify")
+  redirect(`/auth/verify?redirectTo=${encodeURIComponent(redirectTo)}`)
 
 }
 
@@ -86,6 +88,7 @@ export async function register(formData: FormData) {
 export async function verifyEmail(formData: FormData) {
   const supabase = await createClient()
   const code = formData.get("code") as string
+  const redirectTo = getRedirectTarget(formData)
 
   // Get pending registration from cookie
   const { cookies } = await import("next/headers")
@@ -124,17 +127,18 @@ export async function verifyEmail(formData: FormData) {
     provider: "email",
   })
 
-  redirect("/booking")
+  redirect(redirectTo)
 }
 
 
-export async function signInWithOAuth(provider: "google" | "apple") {
+export async function signInWithOAuth(provider: "google" | "apple", redirectTo?: string) {
   const supabase = await createClient()
+  const safeRedirect = normalizeRedirectTarget(redirectTo)
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(safeRedirect)}`,
     },
   })
 
@@ -146,4 +150,17 @@ export async function signInWithOAuth(provider: "google" | "apple") {
 export async function logout() {
   await clearSession()
   redirect("/")
+}
+
+function getRedirectTarget(formData: FormData) {
+  const value = formData.get("redirectTo")
+  return normalizeRedirectTarget(typeof value === "string" ? value : undefined)
+}
+
+function normalizeRedirectTarget(value?: string) {
+  if (!value) return "/booking"
+  if (!value.startsWith("/")) return "/booking"
+  if (value.startsWith("//")) return "/booking"
+  if (value.includes("://")) return "/booking"
+  return value
 }

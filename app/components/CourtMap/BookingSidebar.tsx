@@ -5,6 +5,8 @@ import { X } from 'lucide-react'
 import { useEffect, useState } from "react"
 import { TimeSlots, SlotRange, formatHour } from "./TimeSlots"
 import { Schedule } from "./Schedule"
+import { savePendingBooking } from "@/app/utils/bookingStore"
+import { useRouter } from "next/navigation"
 
 interface Props {
   court: Court | null
@@ -13,30 +15,52 @@ interface Props {
 
 export function BookingSidebar({ court, onClose }: Props) {
 
+  const router = useRouter()
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-
   const [selectedDate, setSelectedDate] = useState<Date>(today)
   const [selectedRange, setSelectedRange] = useState<SlotRange | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => { setSelectedRange(null) }, [court?.id, selectedDate])
 
   const totalHours = selectedRange ? selectedRange.end - selectedRange.start + 1 : 0
   const totalPrice = totalHours * (court?.pricePerSlot ?? 0)
 
-  function bookCourt(): void {
-    console.log(
-      `Booking ${court?.id} 
-      on ${selectedDate.toString()} 
-      from ${selectedRange?.start} 
-      to ${(selectedRange?.end ?? 0) + 1}`
-    );
+  async function bookCourt() {
+    if (!court || !selectedRange) return
+    setIsLoading(true)
+
+    savePendingBooking({
+      courtId: court.id,
+      courtLabel: court.label,
+      courtType: court.type,
+      date: selectedDate.toISOString().split('T')[0],
+      startHour: selectedRange.start,
+      endHour: selectedRange.end + 1,
+      totalPrice,
+      pricePerSlot: court.pricePerSlot,
+    })
+
+    try {
+      const response = await fetch("/api/session", { cache: "no-store" })
+      const data = await response.json()
+      const isAuthenticated = Boolean(data?.session?.id)
+
+      if (!isAuthenticated) {
+        router.push("/auth?redirectTo=/booking/payment")
+      } else {
+        router.push("/booking/payment")
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <>
       <div
-        className={`absolute top-0 right-0 h-full w-100 bg-white border-l border-gray-200 shadow-xl flex flex-col z-[70] transition-transform duration-300 ease-in-out pointer-events-auto ${court ? 'translate-x-0' : 'translate-x-full'
+        className={`absolute top-0 right-0 h-full w-100 bg-white border-l border-gray-200 shadow-xl flex flex-col z-70 transition-transform duration-300 ease-in-out pointer-events-auto ${court ? 'translate-x-0' : 'translate-x-full'
           }`}
         data-sidebar
         onMouseDown={e => e.stopPropagation()}
@@ -132,7 +156,7 @@ export function BookingSidebar({ court, onClose }: Props) {
                 <button className="w-full py-3.5 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 active:bg-gray-950 transition-colors cursor-pointer"
                   onClick={() => bookCourt()}
                 >
-                  Book Now
+                  {isLoading ? 'Redirecting...' : 'Book Now'}
                 </button>
               </div>
             )}

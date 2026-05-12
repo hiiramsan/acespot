@@ -1,7 +1,7 @@
 /**
  * bookingStore.ts
  * Persists a pending booking in sessionStorage so it survives
- * the auth redirect and can be restored on /booking/complete.
+ * the auth redirect and can be restored on /booking/completed.
  */
 import { PendingBooking } from "../types/PendingBooking"
 

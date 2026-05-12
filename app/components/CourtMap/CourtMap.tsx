@@ -30,7 +30,6 @@ export function CourtMap({ height = '100vh', onBook }: Props) {
   const { courts, loading } = useCourts()
 
   const handleCourtClick = useCallback((court: Court) => {
-    console.log(`${court.label} selected`)
     setSelectedCourt(court)
   }, [])
 

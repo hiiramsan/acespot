@@ -2,11 +2,14 @@
 
 import { useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { verifyEmail } from "@/app/auth/actions"
 
 const OTP_LENGTH = 6
 
 export default function VerifyPage() {
+  const searchParams = useSearchParams()
+  const redirectTo = normalizeRedirectTarget(searchParams.get("redirectTo"))
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""))
@@ -137,6 +140,7 @@ export default function VerifyPage() {
 
         <form className="w-full flex flex-col gap-4" action={handleSubmit}>
           <input type="hidden" name="code" value={otpValue} />
+          <input type="hidden" name="redirectTo" value={redirectTo} />
           <div className="flex items-center justify-between gap-2">
             {otp.map((value, index) => (
               <input
@@ -203,4 +207,12 @@ export default function VerifyPage() {
       </div>
     </div>
   )
+}
+
+function normalizeRedirectTarget(value: string | null) {
+  if (!value) return "/booking"
+  if (!value.startsWith("/")) return "/booking"
+  if (value.startsWith("//")) return "/booking"
+  if (value.includes("://")) return "/booking"
+  return value
 }
