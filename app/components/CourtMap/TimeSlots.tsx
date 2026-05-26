@@ -25,6 +25,21 @@ interface Props {
 export function TimeSlots({ courtId, date, selected, onChange }: Props) {
   const { reservedHours, loading } = useReservedHours(courtId, date)
 
+  const now = new Date()
+  const isToday =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+
+  function isPastHour(hour: number): boolean {
+    if (!isToday) return false
+    return hour <= now.getHours()
+  }
+
+  function isBlocked(hour: number): boolean {
+    return reservedHours.has(hour) || isPastHour(hour)
+  }
+
   const hours = Array.from(
     { length: CLOSE_HOUR - OPEN_HOUR },
     (_, i) => OPEN_HOUR + i
@@ -45,7 +60,7 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
     const lo = Math.min(a, b)
     const hi = Math.max(a, b)
     for (let h = lo; h <= hi; h++) {
-      if (reservedHours.has(h)) return null
+      if (isBlocked(h)) return null
     }
     return { start: lo, end: hi }
   }
@@ -69,14 +84,14 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
   }
 
   function handleMouseDown(hour: number) {
-    if (reservedHours.has(hour)) return
+    if (isBlocked(hour)) return
     dragOrigin.current = hour
     setPreview(computeClickResult(hour))
   }
 
   function handleMouseEnter(hour: number) {
     if (dragOrigin.current === null) return
-    if (reservedHours.has(hour)) return
+    if (isBlocked(hour)) return
     const range = buildRange(dragOrigin.current, hour)
     setPreview(range)
   }
@@ -116,6 +131,8 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
         {hours.map(hour => {
           const isReserved = reservedHours.has(hour)
           const highlighted = isInRange(hour)
+          const isPast = isPastHour(hour)
+          const blocked = isReserved || isPast
 
           return (
             <div
@@ -134,12 +151,10 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
             >
               <span className="font-medium">{formatHour(hour)}</span>
               <span className="text-xs">
-                {isReserved
-                  ? <span className="text-gray-400">Reserved</span>
-                  : highlighted
-                    ? <Check size={14} />
-                    : null
-                }
+                {isReserved ? <span className="text-gray-400">Reserved</span> :
+                  isPast ? <span className="text-gray-400">Unavailable</span> :
+                    highlighted ? <Check size={14} /> :
+                      null}
               </span>
             </div>
           )

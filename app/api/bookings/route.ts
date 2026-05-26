@@ -7,7 +7,7 @@ type BookingPayload = {
   date: string
   startHour: number
   endHour: number
-  totalPrice: number 
+  totalPrice: number
 }
 
 export async function POST(req: NextRequest) {
@@ -27,16 +27,20 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  const bookingCode =
+    'AC-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+
   const { data, error } = await supabase
     .from("bookings")
     .insert({
-      court_id:    courtId,
-      user_id:     user.id,
+      booking_code: bookingCode,
+      court_id: courtId,
+      user_id: user.id,
       date,
-      start_hour:  startHour,
-      end_hour:    endHour,
+      start_hour: startHour,
+      end_hour: endHour,
       total_price: Math.round(totalPrice * 100),
-      status:      "confirmed",
+      status: "confirmed",
     })
     .select()
     .single()
@@ -49,5 +53,31 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  return NextResponse.json({ booking: data })
+  const { data: courtData } = await supabase
+    .from('courts')
+    .select('label')
+    .eq('id', data.id)
+    .single()
+
+    
+
+  return NextResponse.json({
+    booking: {
+      id: data.id,
+      bookingCode: data.booking_code,
+      date: data.date,
+      startHour: data.start_hour,
+      endHour: data.end_hour,
+      totalPrice: data.total_price,
+      status: data.status,
+      court: data.court_id
+    },
+    court: {
+      name: courtData?.label ?? 'Court',
+    },
+    user: {
+      fullName: user.full_name ?? null,
+      email: user.email ?? null,
+    },
+  })
 }

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { cookies, headers } from "next/headers"
 import { LogoutButton } from "@/app/components/LogoutButton"
 import ProfileAvatar from "@/app/components/ProfileAvatar"
 import { getUser } from "@/app/utils/user"
@@ -8,11 +9,13 @@ export default async function ProfilePage() {
 
   if (!user) redirect("/auth")
 
+  const stats = await getProfileStats()
+
   const displayName = user.full_name || "Member"
   const email = user.email || "—"
   const memberSince = formatMemberSince(user.created_at)
-  const totalReservations = user.total_reservations ?? 0
-  const hoursBooked = user.total_hours ?? 0
+  const totalReservations = stats?.totalReservations ?? 0
+  const hoursBooked = stats?.totalBookedHours ?? 0
 
   const emailInitial = (email && email !== "—") ? email.charAt(0).toUpperCase() : "U"
   const avatarColors = ["bg-blue-100 text-blue-900", "bg-purple-100 text-purple-900", "bg-green-100 text-green-900", "bg-pink-100 text-pink-900", "bg-amber-100 text-amber-900"]
@@ -114,6 +117,27 @@ export default async function ProfilePage() {
       </div>
     </div>
   )
+}
+
+async function getProfileStats() {
+  const headerStore = await headers()
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host")
+  const protocol = headerStore.get("x-forwarded-proto") ?? "http"
+
+  if (!host) return null
+
+  const cookieHeader = (await cookies()).toString()
+  const response = await fetch(`${protocol}://${host}/api/profile`, {
+    cache: "no-store",
+    headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+  })
+
+  if (!response.ok) return null
+
+  return response.json() as Promise<{
+    totalReservations: number
+    totalBookedHours: number
+  }>
 }
 
 function formatMemberSince(dateValue: string | null | undefined) {

@@ -1,37 +1,24 @@
 'use client'
 
-import { COURTS, FACILITIES, MAP_HEIGHT, MAP_WIDTH } from '@/app/data/courts'
+import { FACILITIES, MAP_HEIGHT, MAP_WIDTH } from '@/app/data/courts'
 import { useMapPanZoom } from '@/app/hooks/useMapPanZoom'
 import { useState, useCallback } from 'react'
 import { CourtShape } from './CourtShape'
 import { BookingSidebar } from './BookingSidebar'
 import { Court } from '@/app/types/Court'
 import { MapControls } from './MapControl'
-import { Facility } from '@/app/types/Facility'
 import { useCourts } from '@/app/hooks/useCourts'
+import { FACILITY_STYLE } from '@/app/data/facilityStyle'
 
 interface Props {
   height?: number | string
   onBook?: (court: Court, slotIds: string[]) => void
 }
 
-const FACILITY_STYLE: Record<Facility['kind'], {
-  fill: string; stroke: string; textFill: string; dashArray?: string
-}> = {
-  bleacher: { fill: '#d6d0c4', stroke: '#a09880', textFill: '#6b6050', dashArray: '5 3' },
-  bar: { fill: '#fff9e6', stroke: '#c9a227', textFill: '#7a5c10', dashArray: '5 3' },
-  room: { fill: '#fff9e6', stroke: '#c9a227', textFill: '#7a5c10', dashArray: '5 3' },
-  entrance: { fill: '#c8c8c4', stroke: '#888880', textFill: '#444' },
-}
-
 export function CourtMap({ height = '100vh', onBook }: Props) {
   const { canvasRef, zoomIn, zoomOut, reset, wasLastInteractionPan, resetPanFlag } = useMapPanZoom()
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(null)
   const { courts, loading } = useCourts()
-
-  const handleCourtClick = useCallback((court: Court) => {
-    setSelectedCourt(court)
-  }, [])
 
   return (
     <div style={{ display: 'flex', height: height || '100vh', overflow: 'hidden', position: 'relative' }}>
@@ -137,7 +124,7 @@ export function CourtMap({ height = '100vh', onBook }: Props) {
                 key={court.id}
                 court={court}
                 isSelected={selectedCourt?.id === court.id}
-                onClick={handleCourtClick}
+                onClick={() => setSelectedCourt(court)}
                 wasLastInteractionPan={wasLastInteractionPan}
                 resetPanFlag={resetPanFlag}
               />

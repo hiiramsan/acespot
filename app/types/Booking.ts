@@ -1,8 +1,10 @@
 export interface Booking {
   id: string
-  courtId: string
-  customerId: string
+  court_id: string
+  customer_id: string
   date: string
-  startHour: number
-  endHour: number
+  start_hour: number
+  end_hour: number
+  booking_code: string
+  total_price: number
 }

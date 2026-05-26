@@ -18,11 +18,13 @@ const AuthPage = () => {
     const [loading, setLoading] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<{
         email?: string;
+        name?: string;
         password?: string;
         repeatPassword?: string;
     }>({});
     const [formData, setFormData] = useState({
         email: "",
+        name: "",
         password: "",
         repeatPassword: ""
     });
@@ -30,6 +32,7 @@ const AuthPage = () => {
     useEffect(() => {
         setFormData({
             email: "",
+            name: "",
             password: "",
             repeatPassword: ""
         })
@@ -43,7 +46,6 @@ const AuthPage = () => {
             ...prevState,
             [name]: value
         }));
-        // Clear field error when user starts typing
         if (fieldErrors[name as keyof typeof fieldErrors]) {
             setFieldErrors((prev) => ({
                 ...prev,
@@ -71,6 +73,12 @@ const AuthPage = () => {
             errors.repeatPassword = "Please confirm your password";
         } else if (formData.password !== formData.repeatPassword) {
             errors.repeatPassword = "Passwords do not match";
+        }
+
+        if(!formData.name) {
+            errors.name = "Name is required";
+        } else if(formData.name.length > 50) {
+            errors.name = "Do not exceed 50 characters"
         }
         
         return errors;
@@ -113,6 +121,7 @@ const AuthPage = () => {
             result = await login(form);
         } else {
             form.append("repeatPassword", formData.repeatPassword);
+            form.append("name", formData.name)
             result = await register(form);
         }
         if (result?.error) setError(result.error)
@@ -159,13 +168,6 @@ const AuthPage = () => {
                             <GoogleIcon />
                             Continue with Google
                         </button>
-                        {/* <button
-                            className="flex items-center justify-center gap-2 w-full bg-white border border-gray-200 text-gray-700 h-9 text-sm font-medium hover:bg-gray-50 transition-colors transform hover:-translate-y-0.5 duration-200 font-nav"
-                            onClick={()=> handleOAuth("apple")} disabled={loading}
-                        >
-                            <AppleIcon />
-                            Continue with Apple
-                        </button> */}
                         <div className="relative flex py-2 items-center">
                             <div className="grow border-t border-gray-600"></div>
                             <span className="shrink-0 mx-3 text-gray-400 text-xs font-nav">Or continue with email</span>
@@ -198,6 +200,24 @@ const AuthPage = () => {
                                     <p className="text-xs text-red-400 mt-1">{fieldErrors.email}</p>
                                 )}
                             </div>
+                            {mode == "register" && 
+                            <div className="flex flex-col gap-1">
+                                <label htmlFor="name" className="text-sm text-[#f3f3f3] font-nav">Full name</label>
+                                <input 
+                                    type="text" 
+                                    name="name" 
+                                    className={`border h-9 px-3 py-1 text-sm font-nav bg-transparent text-white placeholder-gray-400 transition-colors ${
+                                        fieldErrors.name ? 'border-red-500/50' : 'border-gray-500'
+                                    } hover:border-gray-400 focus:border-lime-300 outline-none`}
+                                    placeholder="your@email.com" 
+                                    value={formData.name} 
+                                    onChange={(e) => handleFormTextChange(e)} 
+                                />
+                                {fieldErrors.name && (
+                                    <p className="text-xs text-red-400 mt-1">{fieldErrors.email}</p>
+                                )}
+                            </div>
+                            }
                             <div className="flex flex-col gap-1">
                                 <label className="text-sm text-[#f3f3f3] font-nav">Password</label>
                                 <div className="relative">

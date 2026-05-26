@@ -41,6 +41,7 @@ export async function register(formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
   const repeatPassword = formData.get("repeatPassword") as string
+  const fullName = formData.get("name") as string
 
   if (!email || !email.includes("@")) {
     return { error: "Please enter a valid email address" }
@@ -52,6 +53,10 @@ export async function register(formData: FormData) {
 
   if (password !== repeatPassword) {
     return { error: "Passwords do not match" }
+  }
+
+  if (!fullName || fullName.length > 50) {
+    return { error: "Name must not exceed 50 characters" }
   }
 
   const { data: existing } = await supabase
@@ -68,7 +73,7 @@ export async function register(formData: FormData) {
   const cookieStore = await cookies()
   cookieStore.set(
     "pending_registration",
-    JSON.stringify({ email, password_hash }),
+    JSON.stringify({ email, fullName, password_hash }),
     {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -97,18 +102,18 @@ export async function verifyEmail(formData: FormData) {
 
   if (!pending) return { error: "Registration expired, please try again" }
 
-  const { email, password_hash } = JSON.parse(pending)
+  const { email, fullName, password_hash } = JSON.parse(pending)
 
   // Verify OTP
   const valid = await verifyOTP(email, code)
   if (!valid) return { error: "Invalid or expired code" }
 
-  // Create user now that email is verified
   const { data: newUser, error } = await supabase
     .from("users")
     .insert({
       email,
       password_hash,
+      full_name: fullName,
       provider: "email",
       email_verified: true,
     })

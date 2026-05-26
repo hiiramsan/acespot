@@ -21,7 +21,7 @@ export const MembershipSection = () => {
           </div>
 
           <h1 className="mt-5 max-w-xl text-3xl leading-tight text-[#0d1b2b] lg:text-5xl">
-            Respot Membership Card
+            Acespot Membership Card
           </h1>
 
           <p className="mt-4 max-w-xl text-sm text-gray-700 lg:text-base">
@@ -52,7 +52,7 @@ export const MembershipSection = () => {
             type="button"
             className="mt-8 w-full cursor-pointer rounded-full bg-[#0f1722] px-5 py-3 text-sm font-medium text-lime-300 transition-colors duration-200 hover:bg-[#1a2738]"
           >
-            Claim Membership Card
+            Get Membership Card
           </button>
         </article>
 
@@ -71,9 +71,6 @@ export const MembershipSection = () => {
                   <p className="font-nav text-xs uppercase tracking-widest text-white/60">ACESPOT Club</p>
                   <h2 className="mt-2 text-2xl">Membership Card</h2>
                 </div>
-                <span className="rounded-full border border-lime-300/50 bg-lime-300/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-lime-200">
-                  Limited
-                </span>
               </div>
 
               <div className="flex-1" />
@@ -88,7 +85,7 @@ export const MembershipSection = () => {
                   <p className="text-[11px] uppercase tracking-widest text-white/55">Quick Access QR</p>
                   <div className="rounded-2xl bg-white p-1 shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
                     <img
-                      src="/qr.svg"
+                      src="/qrcode.svg"
                       alt="Membership quick access QR"
                       className="h-32 w-32 rounded-2xl"
                     />

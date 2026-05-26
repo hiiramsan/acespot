@@ -29,6 +29,7 @@ export function BookingSidebar({ court, onClose }: Props) {
 
   async function bookCourt() {
     if (!court || !selectedRange) return
+
     setIsLoading(true)
 
     savePendingBooking({

@@ -3,12 +3,14 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { clearPendingBooking, loadPendingBooking } from '@/app/utils/bookingStore'
+import QRCode from "react-qr-code"
 
 export default function CompletePage() {
   const searchParams = useSearchParams()
-  const router       = useRouter()
+  const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [bookingData, setBookingData] = useState<any>(null)
 
   useEffect(() => {
     const paymentIntent = searchParams.get('payment_intent')
@@ -17,7 +19,6 @@ export default function CompletePage() {
     const booking = loadPendingBooking()
     if (!booking) { router.push('/'); return }
 
-    // Insert the confirmed booking into Supabase
     fetch('/api/bookings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -32,8 +33,9 @@ export default function CompletePage() {
         const message = payload?.error ?? 'Booking failed'
         throw new Error(message)
       })
-      .then(() => {
+      .then((data) => {
         clearPendingBooking()
+        setBookingData(data)
         setStatus('success')
       })
       .catch((err: Error) => {
@@ -41,6 +43,21 @@ export default function CompletePage() {
         setStatus('error')
       })
   }, [])
+
+  function formatDate(value: string) {
+    if (!value) return ""
+    const date = new Date(`${value}T00:00:00`)
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+  }
+
+  function formatCourtName(courtName: string) {
+    return courtName.charAt(0).toUpperCase() + courtName.replace("-", " Court ").slice(1)
+  }
 
   if (status === 'loading') return (
     <div className="min-h-screen flex items-center justify-center">
@@ -59,13 +76,73 @@ export default function CompletePage() {
   )
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center px-6">
-      <CheckCircle2 size={56} className="text-green-500" />
-      <h1 className="text-3xl font-bold text-gray-900">Booking Confirmed!</h1>
-      <p className="text-gray-500 max-w-sm">Check your email for confirmation details.</p>
-      <button onClick={() => router.push('/')} className="mt-4 px-6 py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors cursor-pointer">
-        Back to Home
-      </button>
+    <div className="min-h-screen flex items-center justify-center px-6 bg-gray-50 p-20">
+      <div className="w-full max-w-md bg-white rounded-3xl  p-8 shadow-sm border border-gray-100">
+
+        <div className="flex flex-col items-center text-center">
+          <CheckCircle2 size={60} className="text-lime-500 mb-4" />
+
+          <h1 className="text-3xl font-bold text-gray-900">
+            Booking Confirmed
+          </h1>
+
+          <p className="text-gray-500 mt-2">
+            Your court has been reserved successfully.
+          </p>
+        </div>
+
+        <div className="flex justify-center pt-4">
+          <div className="bg-white p-3 rounded-xl">
+            <QRCode value={bookingData.booking.bookingCode} size={120} />
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-5">
+
+          <div>
+            <p className="text-sm text-gray-400">Court</p>
+            <p className="font-semibold text-gray-900">
+              {formatCourtName(bookingData.booking.court)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-400">Date</p>
+            <p className="font-semibold text-gray-900">
+              {formatDate(bookingData.booking.date)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-400">Time</p>
+            <p className="font-semibold text-gray-900">
+              {bookingData.booking.startHour}:00 - {bookingData.booking.endHour}:00
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-400">Booking ID</p>
+            <p className="font-mono font-bold text-gray-900 tracking-wide">
+              {bookingData.booking.bookingCode}
+            </p>
+          </div>
+
+        </div>
+
+        <div className="mt-8 border-t border-gray-100 pt-6">
+          <p className="text-sm text-gray-500 text-center">
+            Arrive 10 minutes early and show your booking ID at reception.
+          </p>
+        </div>
+
+        <button
+          onClick={() => router.push('/')}
+          className="mt-8 w-full py-3 rounded-2xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors cursor-pointer"
+        >
+          Back to Home
+        </button>
+
+      </div>
     </div>
   )
 }
