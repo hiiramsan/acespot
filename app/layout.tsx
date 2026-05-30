@@ -25,9 +25,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ACESPOT",
+  title: "acespot",
   description: "Tennis Courts Facilities Booking",
-  icons: "/tabicon.ico" 
+  icons: "/tabicon.ico"
 };
 
 export default function RootLayout({
