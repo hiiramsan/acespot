@@ -1,132 +1,166 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle2, Loader2 } from 'lucide-react'
-import { clearPendingBooking, loadPendingBooking } from '@/app/utils/bookingStore'
+import { clearPendingBooking } from '@/app/utils/bookingStore'
 import QRCode from "react-qr-code"
+
+interface BookingResponse {
+  booking: {
+    id: string
+    bookingCode: string
+    date: string
+    startHour: number
+    endHour: number
+    totalPrice: number
+    status: string
+    court: string
+  }
+  court: { name: string }
+  user: { fullName: string | null; email: string | null }
+}
+
+const POLL_INTERVAL_MS = 2000   // poll every 2 seconds
+const POLL_TIMEOUT_MS  = 30000  // give up after 30 seconds
 
 export default function CompletePage() {
   const searchParams = useSearchParams()
-  const router = useRouter()
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const router       = useRouter()
+
+  const [status,       setStatus]       = useState<'loading' | 'success' | 'error'>('loading')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [bookingData, setBookingData] = useState<any>(null)
+  const [bookingData,  setBookingData]  = useState<BookingResponse | null>(null)
+  const [pollSeconds,  setPollSeconds]  = useState(0)
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const startedAt   = useRef<number>(Date.now())
 
   useEffect(() => {
     const paymentIntent = searchParams.get('payment_intent')
     if (!paymentIntent) { router.push('/'); return }
 
-    const booking = loadPendingBooking()
-    if (!booking) { router.push('/'); return }
+    async function poll() {
+      try {
+        const res  = await fetch(`/api/bookings/status?paymentIntentId=${paymentIntent}`)
+        const data = await res.json()
 
-    fetch('/api/bookings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...booking,
-        paymentIntentId: paymentIntent,
-      }),
-    })
-      .then(async r => {
-        if (r.ok) return r.json()
-        const payload = await r.json().catch(() => null)
-        const message = payload?.error ?? 'Booking failed'
-        throw new Error(message)
-      })
-      .then((data) => {
-        clearPendingBooking()
-        setBookingData(data)
-        setStatus('success')
-      })
-      .catch((err: Error) => {
-        setErrorMessage(err.message)
+        if (!res.ok) {
+          throw new Error(data.error ?? 'Failed to check booking status')
+        }
+
+        if (data.booking) {
+          // Booking exists — webhook has fired, we're done
+          clearPendingBooking()
+          setBookingData(data)
+          setStatus('success')
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          return
+        }
+
+        // Booking not yet created — check timeout
+        const elapsed = Date.now() - startedAt.current
+        setPollSeconds(Math.floor(elapsed / 1000))
+
+        if (elapsed > POLL_TIMEOUT_MS) {
+          throw new Error('Booking confirmation is taking longer than expected. Your payment was successful — please contact support if your booking does not appear shortly.')
+        }
+
+      } catch (err) {
+        setErrorMessage(err instanceof Error ? err.message : 'Unknown error')
         setStatus('error')
-      })
+        if (intervalRef.current) clearInterval(intervalRef.current)
+      }
+    }
+
+    // Poll immediately then every 2 seconds
+    poll()
+    intervalRef.current = setInterval(poll, POLL_INTERVAL_MS)
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
   }, [])
 
   function formatDate(value: string) {
     if (!value) return ""
-    const date = new Date(`${value}T00:00:00`)
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
+    return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
+      weekday: "short", month: "short", day: "numeric", year: "numeric",
     })
   }
 
-  function formatCourtName(courtName: string) {
-    return courtName.charAt(0).toUpperCase() + courtName.replace("-", " Court ").slice(1)
+  function formatHour(h: number) {
+    return `${String(h).padStart(2, '0')}:00`
   }
 
   if (status === 'loading') return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3">
       <Loader2 className="animate-spin text-gray-400" size={32} />
+      <p className="text-sm text-gray-400">
+        Confirming your booking{pollSeconds > 3 ? ` (${pollSeconds}s)` : ''}...
+      </p>
     </div>
   )
 
   if (status === 'error') return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6">
-      <p className="text-gray-900 font-semibold">Payment went through but booking failed.</p>
-      {errorMessage && (
-        <p className="text-sm text-gray-500">{errorMessage}</p>
-      )}
-      <p className="text-sm text-gray-500">Contact support with your payment reference.</p>
+      <p className="text-gray-900 font-semibold">Something went wrong.</p>
+      {errorMessage && <p className="text-sm text-red-500 max-w-sm">{errorMessage}</p>}
     </div>
   )
 
+  if (!bookingData?.booking) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="animate-spin text-gray-400" size={32} />
+    </div>
+  )
+
+  const { booking, court, user } = bookingData
+
   return (
     <div className="min-h-screen flex items-center justify-center px-6 bg-gray-50 p-20">
-      <div className="w-full max-w-md bg-white rounded-3xl  p-8 shadow-sm border border-gray-100">
+      <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
 
         <div className="flex flex-col items-center text-center">
           <CheckCircle2 size={60} className="text-lime-500 mb-4" />
-
-          <h1 className="text-3xl font-bold text-gray-900">
-            Booking Confirmed
-          </h1>
-
-          <p className="text-gray-500 mt-2">
-            Your court has been reserved successfully.
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Booking Confirmed</h1>
+          <p className="text-gray-500 mt-2">Your court has been reserved successfully.</p>
         </div>
 
-        <div className="flex justify-center pt-4">
-          <div className="bg-white p-3 rounded-xl">
-            <QRCode value={bookingData.booking.bookingCode} size={120} />
+        <div className="flex justify-center pt-6">
+          <div className="bg-white p-3 rounded-xl border border-gray-100">
+            <QRCode value={booking.bookingCode ?? booking.id} size={120} />
           </div>
         </div>
 
         <div className="mt-8 space-y-5">
-
           <div>
             <p className="text-sm text-gray-400">Court</p>
-            <p className="font-semibold text-gray-900">
-              {formatCourtName(bookingData.booking.court)}
-            </p>
+            <p className="font-semibold text-gray-900">{court?.name ?? booking.court}</p>
           </div>
-
           <div>
             <p className="text-sm text-gray-400">Date</p>
-            <p className="font-semibold text-gray-900">
-              {formatDate(bookingData.booking.date)}
-            </p>
+            <p className="font-semibold text-gray-900">{formatDate(booking.date)}</p>
           </div>
-
           <div>
             <p className="text-sm text-gray-400">Time</p>
             <p className="font-semibold text-gray-900">
-              {bookingData.booking.startHour}:00 - {bookingData.booking.endHour}:00
+              {formatHour(booking.startHour)} – {formatHour(booking.endHour)}
             </p>
           </div>
-
+          <div>
+            <p className="text-sm text-gray-400">Amount Paid</p>
+            <p className="font-semibold text-gray-900">${booking.totalPrice}</p>
+          </div>
           <div>
             <p className="text-sm text-gray-400">Booking ID</p>
-            <p className="font-mono font-bold text-gray-900 tracking-wide">
-              {bookingData.booking.bookingCode}
-            </p>
+            <p className="font-mono font-bold text-gray-900 tracking-wide">{booking.bookingCode}</p>
           </div>
-
+          {user?.fullName && (
+            <div>
+              <p className="text-sm text-gray-400">Name</p>
+              <p className="font-semibold text-gray-900">{user.fullName}</p>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 border-t border-gray-100 pt-6">
@@ -141,7 +175,6 @@ export default function CompletePage() {
         >
           Back to Home
         </button>
-
       </div>
     </div>
   )

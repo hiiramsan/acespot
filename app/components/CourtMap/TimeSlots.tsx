@@ -141,7 +141,7 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
               onMouseEnter={() => handleMouseEnter(hour)}
               className={`
                 flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors
-                ${isReserved
+                ${isReserved || isPast
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none'
                   : highlighted
                     ? 'bg-gray-900 text-white cursor-pointer'
