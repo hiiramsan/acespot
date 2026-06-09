@@ -4,7 +4,10 @@ import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-export const config = { api: { bodyParser: false } }
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(req: NextRequest) {
   const body      = await req.text()
@@ -26,24 +29,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
+  // Acknowledge all non-relevant events immediately
   if (event.type !== 'payment_intent.succeeded') {
     return NextResponse.json({ received: true })
   }
 
   const intent = event.data.object as Stripe.PaymentIntent
-
   const { courtId, date, startHour, endHour, userId } = intent.metadata
 
   if (!courtId || !date || !startHour || !endHour || !userId) {
-    console.error('Webhook missing metadata:', intent.metadata)
-    return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
+    // Return 200 so Stripe doesn't retry — this intent wasn't created by our app
+    console.error('Webhook: missing metadata, skipping', intent.id)
+    return NextResponse.json({ received: true })
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
+  // ── Idempotency — skip if already inserted ────────────────────────────────
   const { data: existing } = await supabase
     .from('bookings')
     .select('id')
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true })
   }
 
+  // ── Insert booking ────────────────────────────────────────────────────────
   const bookingCode = 'AC-' + Math.random().toString(36).substring(2, 8).toUpperCase()
 
   const { error } = await supabase
@@ -72,7 +73,13 @@ export async function POST(req: NextRequest) {
     })
 
   if (error) {
+    // 23505 = unique violation on payment_intent_id — race with the booking route, ignore
+    if (error.code === '23505') {
+      console.log('Webhook: booking already created by route, skipping')
+      return NextResponse.json({ received: true })
+    }
     console.error('Webhook booking insert failed:', error)
+    // Return 500 so Stripe retries
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 

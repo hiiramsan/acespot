@@ -128,7 +128,7 @@ export function AppNavbarClient({ user }: AppNavbarClientProps) {
                     >
                         <span className={`block w-5 h-[1.5px] bg-white transition-transform duration-200 ${menuOpen ? "rotate-45 translate-y-[6.5px]" : ""}`} />
                         <span className={`block w-5 h-[1.5px] bg-white transition-opacity duration-200 ${menuOpen ? "opacity-0" : ""}`} />
-                        <span className={`block w-5 h-[1.5px] bg-white transition-transform duration-200 ${menuOpen ? "-rotate-45 -translate-y-[6.5px]" : ""}`} />
+                        <span className={`block w-5 h-[1.5px] bg-white transition-transform duration-200 ${menuOpen ? "-rotate-45 translate-y-[-6.5px]" : ""}`} />
                     </button>
                 </div>
             </div>

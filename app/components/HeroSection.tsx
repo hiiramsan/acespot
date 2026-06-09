@@ -10,7 +10,7 @@ const HeroSection = () => {
                         <span className='text-lime-300'> Play</span>.</p>
                     <div className="flex flex-col gap-4">
                         <div>
-                            <button className="relative px-4 py-1 rounded-4xl bg-white/10 backdrop-blur-xl border border-white/20 text-white font-medium shadow-lg shadow-black/30 overflow-hidden">
+                            {/* <button className="relative px-4 py-1 rounded-4xl bg-white/10 backdrop-blur-xl border border-white/20 text-white font-medium shadow-lg shadow-black/30 overflow-hidden">
 
                                 <span className="absolute inset-0 rounded-2xl bg-linear-to-b from-white/30 to-transparent opacity-40 pointer-events-none"></span>
 
@@ -30,7 +30,7 @@ const HeroSection = () => {
                                     </svg>
                                     San Francisco, California
                                 </span>
-                            </button>
+                            </button> */}
                         </div>
                         <h1 className="text-6xl leading-tight font-extralight font-inter text-white [text-shadow:0_8px_24px_rgba(0,0,0,0.35)]">
                             Elevate Your Game
