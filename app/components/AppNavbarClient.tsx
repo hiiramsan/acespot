@@ -155,14 +155,20 @@ export function AppNavbarClient({ user }: AppNavbarClientProps) {
                                 </Link>
                             );
                         })}
-                        <div className="border-t border-gray-600 my-2"></div>
-                        <Link
-                            href="/register"
-                            onClick={() => setMenuOpen(false)}
-                            className="px-4 py-3 rounded-lg bg-lime-400 text-black text-xs font-semibold tracking-widest hover:bg-lime-300 active:scale-95 transition-all duration-150 text-center"
-                        >
-                            SIGN IN
-                        </Link>
+                        {
+                            !user &&
+                            <>
+                                <div className="border-t border-gray-600 my-2"></div>
+                                <Link
+                                    href="/register"
+                                    onClick={() => setMenuOpen(false)}
+                                    className="px-4 py-3 rounded-lg bg-lime-400 text-black text-xs font-semibold tracking-widest hover:bg-lime-300 active:scale-95 transition-all duration-150 text-center"
+                                >
+                                    SIGN IN
+                                </Link>
+                            </>
+                        }
+
                     </nav>
                 </div>
             </div>
