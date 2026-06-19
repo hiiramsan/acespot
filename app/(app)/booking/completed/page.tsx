@@ -1,9 +1,21 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { clearPendingBooking } from '@/app/utils/bookingStore'
 import QRCode from "react-qr-code"
+
+export default function CompletePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-gray-400" size={32} />
+      </div>
+    }>
+      <CompletePageContent />
+    </Suspense>
+  )
+}
 
 interface BookingResponse {
   booking: {
@@ -23,7 +35,7 @@ interface BookingResponse {
 const POLL_INTERVAL_MS = 2000   // poll every 2 seconds
 const POLL_TIMEOUT_MS  = 30000  // give up after 30 seconds
 
-export default function CompletePage() {
+function CompletePageContent() {
   const searchParams = useSearchParams()
   const router       = useRouter()
 
