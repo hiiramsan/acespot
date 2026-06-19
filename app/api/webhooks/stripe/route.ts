@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Insert booking ────────────────────────────────────────────────────────
-  const bookingCode = 'AC-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+  const bookingCode = 'AC-' + crypto.randomUUID().replace(/-/g, '').substring(0, 6).toUpperCase()
 
   const { error } = await supabase
     .from('bookings')

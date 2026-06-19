@@ -144,7 +144,7 @@ const AuthPage = () => {
             <div className="flex-1 md:flex-5 lg:flex-4 flex items-center justify-center p-4 md:p-6">
                 <div className="flex flex-col gap-4 w-full max-w-sm">
                     <div className="flex flex-row gap-2 items-center">
-                        <h1 className="text-2xl font-nav tracking-normal">
+                        <h1 className="text-2xl font-nav tracking-normal text-white">
                             {mode == "login" ? "Welcome Back" : "Create account"}
                         </h1>
                         <svg width="32px" height="32px" viewBox="0 0 24 24" fill="#BEF264">

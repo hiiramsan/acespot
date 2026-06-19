@@ -16,23 +16,17 @@ export default function BookingsPage() {
         className="absolute inset-0 z-0"
         style={{
           backgroundImage: `
-        repeating-radial-gradient(
-          circle at 0 0,
-          rgba(0,0,0,0.06) 0 0.7px,
-          transparent 0.7px 6px
-        ),
-        repeating-radial-gradient(
-          circle at 100% 100%,
-          rgba(0,0,0,0.03) 0 0.6px,
-          transparent 0.6px 5px
-        )
+        repeating-linear-gradient(135deg, #cbd5e133 0 8px, transparent 8px 20px),
+        repeating-linear-gradient(-135deg, #d1fae533 0 8px, transparent 8px 20px)
       `,
-          mixBlendMode: 'multiply',
+          backgroundSize: "40px 40px",
         }}
       />
       <div className="relative w-full h-full">
         <CourtMap onBook={handleBook} height="100%" />
+        <div className='bg-black w-50 h-50 absolute '></div>
       </div>
+      
     </main>
   )
 };

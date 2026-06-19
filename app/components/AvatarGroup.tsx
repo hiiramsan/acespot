@@ -18,7 +18,7 @@ const AvatarGroup = () => {
                 />
                 <img
                     className="h-10 w-10 rounded-full object-cover"
-                    src="/alcaraz.avif"
+                    src="/carlitos.jpeg"
                     alt="Player avatar 2"
                 />
                 <img

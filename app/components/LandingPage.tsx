@@ -24,9 +24,6 @@ const LandingPage = () => {
         <section className="min-h-screen w-full">
           <FacilitiesSection />
         </section>
-        <section className="h-dvh w-full">
-          <MembershipSection />
-        </section>
         <section className="w-full">
           <CommunitySection />
         </section>

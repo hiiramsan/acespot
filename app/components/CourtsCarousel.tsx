@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useRef, JSX } from "react";
+import { useRouter } from "next/navigation";
 
 interface Card {
   id: number;
+  courtId: string;
   tag: string;
   title: string;
   bg: string;
@@ -21,42 +23,42 @@ const availabilityColor = (label: string): string => {
 
 const cards: Card[] = [
   {
-    id: 1,
+    id: 1, courtId: "hard-1",
     tag: "Low availability",
     title: "Hard Court 1",
     bg: cardGradient,
     image: "/hardcourt1.png",
   },
   {
-    id: 2,
+    id: 2, courtId: "hard-2",
     tag: "Low availability",
     title: "Hard Court 2",
     bg: cardGradient,
     image: "/hardcourt2.png",
   },
   {
-    id: 3,
+    id: 3, courtId: "hard-3",
     tag: "Moderate availability",
     title: "Hard Court 3",
     bg: cardGradient,
     image: "/hardcourt3.png",
   },
   {
-    id: 4,
+    id: 4, courtId: "hard-4",
     tag: "High availability",
     title: "Hard Court 4",
     bg: cardGradient,
     image: "/hardcourt4.png",
   },
   {
-    id: 5,
+    id: 5, courtId: "clay-1",
     tag: "High availability",
     title: "Clay Court 1",
     bg: cardGradient,
     image: "/claycourt1.png",
   },
   {
-    id: 6,
+    id: 6, courtId: "clay-2",
     tag: "Low availability",
     title: "Clay Court 2",
     bg: cardGradient,
@@ -65,6 +67,7 @@ const cards: Card[] = [
 ];
 
 export default function CourtsCarousel(): JSX.Element {
+  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState<boolean>(false);
   const [canScrollRight, setCanScrollRight] = useState<boolean>(true);
@@ -106,10 +109,11 @@ export default function CourtsCarousel(): JSX.Element {
           }
         >
           {cards.map((card) => (
-            <button
+              <button
               key={card.id}
               type="button"
               aria-label={`Book ${card.title}`}
+              onClick={() => router.push(`/booking?courtId=${card.courtId}`)}
               className="relative shrink-0 rounded-xl overflow-hidden group w-65 sm:w-70 lg:w-75 h-105 text-left"
             >
               {/* Background Image */}
@@ -124,9 +128,10 @@ export default function CourtsCarousel(): JSX.Element {
 
               {/* Hover legend */}
               <div className="absolute inset-0 z-10 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                <span className="rounded-full  px-4 py-2 text-sm font-medium text-white cursor-pointer border border-white shadow-lg shadow-black/30">
+                <div className="rounded-full  px-4 py-2 text-sm font-medium text-white cursor-pointer border border-white shadow-lg shadow-black/30"
+                >
                   {`Book ${card.title.toLowerCase()}`}
-                </span>
+                </div>
               </div>
 
               {/* Top tag pill */}

@@ -4,20 +4,23 @@ import { verifyToken } from "./app/utils/jwt"
 export async function proxy(request: NextRequest) {
   const token = request.cookies.get("session")?.value
   const user = token ? await verifyToken(token) : null
+  const { pathname } = request.nextUrl
 
-  if (!user && !request.nextUrl.pathname.startsWith("/auth") && !request.nextUrl.pathname.startsWith("/")) {
+  const isPublic =
+    pathname === "/" ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/api/webhooks") ||
+    pathname.startsWith("/api/keepalive")
+
+  if (!user && !isPublic) {
     const url = request.nextUrl.clone()
+    const redirectTo = url.pathname + url.search
     url.pathname = "/auth"
+    url.search = `?redirectTo=${encodeURIComponent(redirectTo)}`
     return NextResponse.redirect(url)
   }
 
-  if (user && request.nextUrl.pathname === "/") {
-    const url = request.nextUrl.clone()
-    url.pathname = "/booking"
-    return NextResponse.redirect(url)
-  }
-
-  if (user && request.nextUrl.pathname.startsWith("/auth")) {
+  if (user && (pathname === "/" || pathname.startsWith("/auth"))) {
     const url = request.nextUrl.clone()
     url.pathname = "/booking"
     return NextResponse.redirect(url)

@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Insert — webhook may not have fired yet so we do it here as fallback ───
-  const bookingCode = 'AC-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+  const bookingCode = 'AC-' + crypto.randomUUID().replace(/-/g, '').substring(0, 6).toUpperCase()
 
   const { data, error } = await supabase
     .from('bookings')
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
 
     console.error('Booking insert failed:', error)
     return NextResponse.json(
-      { error: error.message, details: error.details, hint: error.hint, code: error.code },
+      { error: error.message },
       { status: 500 }
     )
   }

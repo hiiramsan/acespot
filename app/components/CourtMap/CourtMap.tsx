@@ -2,13 +2,15 @@
 
 import { FACILITIES, MAP_HEIGHT, MAP_WIDTH } from '@/app/data/courts'
 import { useMapPanZoom } from '@/app/hooks/useMapPanZoom'
-import { useState, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { CourtShape } from './CourtShape'
 import { BookingSidebar } from './BookingSidebar'
 import { Court } from '@/app/types/Court'
 import { MapControls } from './MapControl'
 import { useCourts } from '@/app/hooks/useCourts'
 import { FACILITY_STYLE } from '@/app/data/facilityStyle'
+import { X } from 'lucide-react'
 
 interface Props {
   height?: number | string
@@ -19,6 +21,29 @@ export function CourtMap({ height = '100vh', onBook }: Props) {
   const { canvasRef, zoomIn, zoomOut, reset, wasLastInteractionPan, resetPanFlag } = useMapPanZoom()
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(null)
   const { courts, loading } = useCourts()
+  const [isModalOpen, setIsModalOpen] = useState(true)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const initialCourtId = searchParams.get('courtId')
+
+  useEffect(() => {
+    if (!initialCourtId || courts.length === 0) return
+    const court = courts.find(c => c.id === initialCourtId)
+    if (court) {
+      selectCourt(court)
+      router.replace('/booking', { scroll: false })
+    }
+  }, [initialCourtId, courts])
+
+  function closeModal() {
+    setIsModalOpen(false)
+  }
+
+  function selectCourt(court: Court) {
+    setSelectedCourt(court)
+    setIsModalOpen(false)
+  }
 
   return (
     <div style={{ display: 'flex', height: height || '100vh', overflow: 'hidden', position: 'relative' }}>
@@ -74,7 +99,7 @@ export function CourtMap({ height = '100vh', onBook }: Props) {
             viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
             xmlns="http://www.w3.org/2000/svg"
           >
-           
+
             {FACILITIES.map(f => {
               const s = FACILITY_STYLE[f.kind]
               return (
@@ -124,7 +149,7 @@ export function CourtMap({ height = '100vh', onBook }: Props) {
                 key={court.id}
                 court={court}
                 isSelected={selectedCourt?.id === court.id}
-                onClick={() => setSelectedCourt(court)}
+                onClick={(court) => selectCourt(court)}
                 wasLastInteractionPan={wasLastInteractionPan}
                 resetPanFlag={resetPanFlag}
               />
@@ -134,10 +159,40 @@ export function CourtMap({ height = '100vh', onBook }: Props) {
         <MapControls zoomIn={zoomIn} zoomOut={zoomOut} reset={reset} />
       </div>
 
+
+
       <BookingSidebar
         court={selectedCourt}
         onClose={() => setSelectedCourt(null)}
       />
+      {
+        selectedCourt == null && isModalOpen && (
+          <div className="absolute bottom-4 right-4 w-80 rounded-2xl border border-white/10 bg-zinc-950/95 p-5 shadow-2xl backdrop-blur">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <span className="inline-flex rounded-full bg-lime-400/15 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-lime-400">
+                  Select a court
+                </span>
+
+                <p className="mt-2 text-sm leading-6 text-zinc-400">
+                  Choose a court from the map to view available dates and time
+                  slots.
+                </p>
+              </div>
+
+              <button
+                className="text-zinc-500 transition hover:text-white cursor-pointer"
+                aria-label="Close"
+                onClick={() => closeModal()}
+              >
+                <X />
+              </button>
+            </div>
+          </div>
+        )
+      }
+
     </div>
   )
 }
+

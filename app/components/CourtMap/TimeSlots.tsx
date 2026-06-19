@@ -43,7 +43,7 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
   const hours = Array.from(
     { length: CLOSE_HOUR - OPEN_HOUR },
     (_, i) => OPEN_HOUR + i
-  )
+  ).filter(h => !isPastHour(h))
 
   const [preview, setPreview] = useState<SlotRange | null | undefined>(undefined)
 
@@ -131,8 +131,6 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
         {hours.map(hour => {
           const isReserved = reservedHours.has(hour)
           const highlighted = isInRange(hour)
-          const isPast = isPastHour(hour)
-          const blocked = isReserved || isPast
 
           return (
             <div
@@ -141,7 +139,7 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
               onMouseEnter={() => handleMouseEnter(hour)}
               className={`
                 flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors
-                ${isReserved || isPast
+                ${isReserved
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none'
                   : highlighted
                     ? 'bg-gray-900 text-white cursor-pointer'
@@ -152,9 +150,8 @@ export function TimeSlots({ courtId, date, selected, onChange }: Props) {
               <span className="font-medium">{formatHour(hour)}</span>
               <span className="text-xs">
                 {isReserved ? <span className="text-gray-400">Reserved</span> :
-                  isPast ? <span className="text-gray-400">Unavailable</span> :
-                    highlighted ? <Check size={14} /> :
-                      null}
+                  highlighted ? <Check size={14} /> :
+                    null}
               </span>
             </div>
           )
