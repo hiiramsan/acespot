@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react"
+import { useMemo, useRef, useState, Suspense, type ClipboardEvent, type KeyboardEvent } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { verifyEmail } from "@/app/auth/actions"
@@ -8,6 +8,18 @@ import { verifyEmail } from "@/app/auth/actions"
 const OTP_LENGTH = 6
 
 export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-dvh w-full bg-[#030303] flex items-center justify-center">
+        <div className="animate-spin w-6 h-6 border-2 border-lime-300 border-t-transparent rounded-full" />
+      </div>
+    }>
+      <VerifyPageContent />
+    </Suspense>
+  )
+}
+
+function VerifyPageContent() {
   const searchParams = useSearchParams()
   const redirectTo = normalizeRedirectTarget(searchParams.get("redirectTo"))
   const [error, setError] = useState<string | null>(null)

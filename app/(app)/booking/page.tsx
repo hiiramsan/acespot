@@ -1,12 +1,10 @@
 'use client'
 
+import { Suspense } from 'react'
 import { CourtMap } from '@/app/components/CourtMap/CourtMap'
-import type { Court } from '@/app/types/Court'
+import { Loader2 } from 'lucide-react'
 
 export default function BookingsPage() {
-  async function handleBook(court: Court, slotIds: string[]) {
-  }
-
   return (
     <main
       style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}
@@ -23,10 +21,15 @@ export default function BookingsPage() {
         }}
       />
       <div className="relative w-full h-full">
-        <CourtMap onBook={handleBook} height="100%" />
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="animate-spin text-gray-400" size={32} />
+          </div>
+        }>
+          <CourtMap height="100%" />
+        </Suspense>
         <div className='bg-black w-50 h-50 absolute '></div>
       </div>
-      
     </main>
   )
 };

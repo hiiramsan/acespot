@@ -1,13 +1,25 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import AppleIcon from "./components/AppleIcon";
 import GoogleIcon from "./components/GoogleIcon";
 import { EyeIcon } from "./components/EyeIcon";
 import { login, register, signInWithOAuth } from "./actions";
 
-const AuthPage = () => {
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-dvh w-full bg-[#030303] flex items-center justify-center">
+        <div className="animate-spin w-6 h-6 border-2 border-lime-300 border-t-transparent rounded-full" />
+      </div>
+    }>
+      <AuthPageContent />
+    </Suspense>
+  )
+}
+
+function AuthPageContent() {
     const searchParams = useSearchParams()
     const redirectTo = normalizeRedirectTarget(searchParams.get("redirectTo"))
 
@@ -331,8 +343,6 @@ const AuthPage = () => {
         </div>
     )
 }
-
-export default AuthPage;
 
 function normalizeRedirectTarget(value: string | null) {
     if (!value) return "/booking"
