@@ -13,4 +13,4 @@ jobs:
     steps:
       - name: Ping keepalive endpoint
         run: |
-          curl -f https://acespot.vercel.app/api/keepalive
+          curl -f https://useacespot.vercel.app/api/keepalive
